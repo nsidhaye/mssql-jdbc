@@ -13,6 +13,9 @@ env:
   - mssql_jdbc_logging='true'
   # Enabling logging with console / file handler for JUnit Test Framework. 
   #- mssql_jdbc_logging_handler='console'|'file'
+  # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+  #   via the "travis encrypt" command using the project repo's public key
+  - secure: "I3BTULP7R+pxlCyw+WMif83jn9R9+Ly7hOESGMOvLLQDPk+uOU0PY73qHdAt90JyqlIMIWCvobzFjSClkntU1OavEXIQ4/diuUG4DL6NKxF8hvlvjxpXgwF2m8wky7YJUzpaMucFYPr6eEtnww0q7o9AfQJw99WHq4jqxjQOdBBUcw+gTj92FDwzRocLXu5V4nZA88f98elg4cGOXV2RZT9aT0OrzVnu4Ioz0zvOFhyZL1T34ORiMQiwpUbjbUFAmXBRG/CAoutrVkQrO8rIij3g1ekgieg5R1lhq+o16yDTibPwGM5rNAlZR0kX0KxPq6uzukDYS+FKk9uP3SS8BLVagsmgYG2x5ATR1MXVwcryUynGVy8CTOJzZPP3CsAhcKyMn3ZVD2xhBDL+7wn5hoHUFMH69vP0fq5tzkiL88Yarbc/jrEKsb77rYgfgsSLIqMEa5VV3FKA3+Z8MA/+KRFUD4+e8hW1SZ2GHZnK0gzweQNw154/UZPdQG5/AjFpfi3SqeGSugx/g71G2paMFfI31RyY6RJvlKRIK7+5IUtKCx73bVjsKtAmd7LRXulB69+Tab7NtwZfv0K7AdQ7HN1s804zaxoGIWCiL9zzZnwPnLYJU4hL23ZhVgdjXsFmLug0GZqinZjfp9No09n2LArmd7OLvzNMM3edDdGg7Xs="  
   
 #Cache the .m2 folder
 cache:
@@ -21,7 +24,18 @@ cache:
   
 before_install:
   - mkdir AE_Certificates
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   
+addons:
+ coverity_scan:
+  project:
+   name: "nsidhaye/mssql-jdbc"
+   description: "Build submitted via Travis CI"
+  notification_email: sidhaye.nikhil@gmail.com
+  build_command_prepend: "mvn clean"
+  build_command: "mvn -DskipTests=true compile"
+  branch_pattern: coverity_scan
+
 install: 
   - cd AE_Certificates
   - openssl req -newkey rsa:2048 -x509 -keyout cakey.pem -out cacert.pem -days 3650 -subj "/C=US/ST=WA/L=Redmond/O=Microsoft Corporation/OU=SQL Server/CN=JDBC Driver" -nodes
