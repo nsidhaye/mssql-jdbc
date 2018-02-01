@@ -26,7 +26,7 @@ class SQLServerConnectionFactory {
 
             try {
                 Class jdk9Class = classLoader.loadClass(CONNECTION_FOR_JDK_9);
-                Constructor con = jdk9Class.getConstructor();
+                Constructor con = jdk9Class.getConstructor(String.class);
                 connection = (SQLServerConnection)con.newInstance(traceId);
 //                connection = (SQLServerConnection) jdk9Class.newInstance();
             }catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
