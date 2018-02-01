@@ -1,5 +1,8 @@
 package com.microsoft.sqlserver.jdbc;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * This will generate SQLServerConnection depend on runtime.
  */
@@ -23,9 +26,10 @@ class SQLServerConnectionFactory {
 
             try {
                 Class jdk9Class = classLoader.loadClass(CONNECTION_FOR_JDK_9);
-
-                connection = (SQLServerConnection) jdk9Class.newInstance();
-            }catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                Constructor con = jdk9Class.getConstructor();
+                connection = (SQLServerConnection)con.newInstance(traceId);
+//                connection = (SQLServerConnection) jdk9Class.newInstance();
+            }catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                 parentLogger.severe("Could not load SQLServerConnection43 class");
 
                 throw new SQLServerException("Error while creating SQL Server Connection", e);
