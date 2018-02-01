@@ -14,12 +14,12 @@ matrix:
  include:
   - jdk: oraclejdk8
     env:
-     - BUILD=build42
-     - JDBC=JDBC42
+     - BUILD='build42'
+     - JDBC='JDBC42'
   - jdk: oraclejdk9
     env:
-     - BUILD=build43
-     - JDBC=JDBC43
+     - BUILD='build43'
+     - JDBC='JDBC43'
 
 services:
   - docker
@@ -46,7 +46,7 @@ install:
   - keytool -importkeystore -destkeystore clientcert.jks -deststorepass password -srckeystore identity.p12 -srcstoretype PKCS12 -srcstorepass password
   - keytool -list -v -keystore clientcert.jks -storepass "password" > JavaKeyStore.txt
   - cd ..
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -P"${BUILD}"
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -P$BUILD
   #- mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Pbuild42
 
 before_script:
@@ -57,5 +57,5 @@ script:
   - docker ps -a
   
 ##Test for JDBC Specification 43 & 42 and submit coverage report.
-  - mvn test -B -P"${BUILD}" jacoco:report && bash <(curl -s https://codecov.io/bash) -cF "${JDBC}"
+  - mvn test -B -P$BUILD jacoco:report && bash <(curl -s https://codecov.io/bash) -cF $JDBC
   #- mvn test -B -Pbuild42 jacoco:report && bash <(curl -s https://codecov.io/bash) -cF JDBC42
