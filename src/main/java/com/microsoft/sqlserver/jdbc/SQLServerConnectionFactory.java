@@ -19,10 +19,11 @@ class SQLServerConnectionFactory {
         SQLServerConnection connection = null;
 
         if (Util.use43Wrapper()) {
-            ClassLoader classLoader = SQLServerConnectionFactory.class.getClassLoader();
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader(); //SQLServerConnectionFactory.class.getClassLoader();
 
             try {
                 Class jdk9Class = classLoader.loadClass(CONNECTION_FOR_JDK_9);
+
                 connection = (SQLServerConnection) jdk9Class.newInstance();
             }catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                 parentLogger.severe("Could not load SQLServerConnection43 class");
