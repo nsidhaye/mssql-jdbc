@@ -148,12 +148,21 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-compiler-plugin</artifactId>
-						<version>3.6.0</version>
+						<version>3.7.0</version>
 						<configuration>
 							<excludes>
+								<exclude>**/*43.java</exclude>
+								<!--
 								<exclude>**/com/microsoft/sqlserver/jdbc/SQLServerJdbc43.java</exclude>
+								<exclude>**/com/microsoft/sqlserver/jdbc/SQLServerConnection43.java</exclude>
+								<exclude>**/com/microsoft/sqlserver/jdbc/ISQLServerConnection43.java</exclude>
+								-->
 							</excludes>
+							<testExcludes>
+								<testExclude>**/*43Test.java</testExclude>
+							</testExcludes>
 							<source>1.8</source>
 							<target>1.8</target>
 						</configuration>

@@ -614,12 +614,15 @@ public final class SQLServerDriver implements java.sql.Driver {
         // Merge connectProperties (from URL) and supplied properties from user.
         Properties connectProperties = parseAndMergeProperties(Url, suppliedProperties);
         if (connectProperties != null) {
+            /*
             if (Util.use43Wrapper()) {
                 result = new SQLServerConnection43(toString());
             }
             else {
                 result = new SQLServerConnection(toString());
             }
+            */
+            result = SQLServerConnectionFactory.getSQLServerConnection(toString());
             result.connect(connectProperties, null);
         }
         loggerExternal.exiting(getClassNameLogging(), "connect", result);

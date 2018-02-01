@@ -1004,12 +1004,16 @@ public class SQLServerDataSource implements ISQLServerDataSource, DataSource, ja
         if (dsLogger.isLoggable(Level.FINER))
             dsLogger.finer(toString() + " Begin create new connection.");
         SQLServerConnection result = null;
+        /*
         if (Util.use43Wrapper()) {
             result = new SQLServerConnection43(toString());
+            this.getClass().getClassLoader().loadClass()
         }
         else {
             result = new SQLServerConnection(toString());
         }
+        */
+        result = SQLServerConnectionFactory.getSQLServerConnection(toString());
         result.connect(mergedProps, pooledConnection);
         if (dsLogger.isLoggable(Level.FINER))
             dsLogger.finer(toString() + " End create new connection " + result.toString());
