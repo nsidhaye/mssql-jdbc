@@ -5,11 +5,12 @@
 	<parent>
 		<groupId>com.microsoft.sqlserver</groupId>
 		<artifactId>mssql-jdbc-parent</artifactId>
-		<version>6.4.0-SNAPSHOT.${jreVersion}</version>
-		<relativePath />
+		<version>6.4.0</version>
+		<relativePath /> 
 	</parent>
 	
 	<artifactId>mssql-jdbc</artifactId>
+	<version>6.4.0-SNAPSHOT.${jreVersion}</version>
 	<packaging>bundle</packaging>
 	<name>Microsoft JDBC Driver for SQL Server</name>
 	<description>
