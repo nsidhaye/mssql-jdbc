@@ -6,7 +6,7 @@
 		<groupId>com.microsoft.sqlserver</groupId>
 		<artifactId>mssql-jdbc-parent</artifactId>
 		<version>6.4.0</version>
-		<relativePath /> 
+		<!-- <relativePath /> -->
 	</parent>
 	
 	<artifactId>mssql-jdbc</artifactId>
