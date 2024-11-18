@@ -245,6 +245,7 @@ public final class SQLServerDatabaseMetaData implements java.sql.DatabaseMetaDat
     private static final String FUNCTION_NAME = "FUNCTION_NAME";
     private static final String FUNCTION_SCHEM = "FUNCTION_SCHEM";
     private static final String FUNCTION_TYPE = "FUNCTION_TYPE";
+    private static final String SPECIFIC_NAME = "SPECIFIC_NAME";
     private static final String SS_IS_SPARSE = "SS_IS_SPARSE";
     private static final String SS_IS_COLUMN_SET = "SS_IS_COLUMN_SET";
     private static final String SS_UDT_CATALOG_NAME = "SS_UDT_CATALOG_NAME";
@@ -890,7 +891,7 @@ public final class SQLServerDatabaseMetaData implements java.sql.DatabaseMetaDat
 
     private static final String[] getFunctionsColumnNames = { /* 1 */ FUNCTION_CAT, /* 2 */ FUNCTION_SCHEM,
             /* 3 */ FUNCTION_NAME, /* 4 */ NUM_INPUT_PARAMS, /* 5 */ NUM_OUTPUT_PARAMS, /* 6 */ NUM_RESULT_SETS,
-            /* 7 */ REMARKS, /* 8 */ FUNCTION_TYPE};
+            /* 7 */ REMARKS, /* 8 */ FUNCTION_TYPE, /* 9 */ SPECIFIC_NAME};
 
     @Override
     public java.sql.ResultSet getFunctions(String catalog, String schemaPattern,
@@ -920,7 +921,7 @@ public final class SQLServerDatabaseMetaData implements java.sql.DatabaseMetaDat
             /* 3 */ FUNCTION_NAME, /* 4 */ COLUMN_NAME, /* 5 */ COLUMN_TYPE, /* 6 */ DATA_TYPE, /* 7 */ TYPE_NAME,
             /* 8 */ PRECISION, /* 9 */ LENGTH, /* 10 */ SCALE, /* 11 */ RADIX, /* 12 */ NULLABLE, /* 13 */ REMARKS,
             /* 14 */ COLUMN_DEF, /* 15 */ SQL_DATA_TYPE, /* 16 */ SQL_DATETIME_SUB, /* 17 */ CHAR_OCTET_LENGTH,
-            /* 18 */ ORDINAL_POSITION, /* 19 */ IS_NULLABLE};
+            /* 18 */ ORDINAL_POSITION, /* 19 */ IS_NULLABLE, /* 20 */ SPECIFIC_NAME};
 
     @Override
     public java.sql.ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern,
