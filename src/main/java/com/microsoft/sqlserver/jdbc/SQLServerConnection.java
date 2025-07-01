@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLPermission;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
@@ -686,6 +687,9 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         }
     }
 
+    private static final String VECTOR_SUPPORT_OFF = "off";
+    private static final String VECTOR_SUPPORT_V1 = "v1";
+
     final static int TNIR_FIRST_ATTEMPT_TIMEOUT_MS = 500; // fraction of timeout to use for fast failover connections
 
     /**
@@ -855,6 +859,220 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         this.useBulkCopyForBatchInsert = useBulkCopyForBatchInsert;
     }
 
+    /**
+     * The default batch size for bulk copy operations created from batch insert operations.
+     */
+    private int bulkCopyForBatchInsertBatchSize = 0;
+
+    /**
+     * Returns the bulkCopyForBatchInsertBatchSize value.
+     * 
+     * @return the bulkCopyForBatchInsertBatchSize value.
+     */
+    public int getBulkCopyForBatchInsertBatchSize() {
+        return bulkCopyForBatchInsertBatchSize;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertBatchSize value.
+     * 
+     * @param bulkCopyForBatchInsertBatchSize
+     *        the bulkCopyForBatchInsertBatchSize value to set.
+     */
+    public void setBulkCopyForBatchInsertBatchSize(int bulkCopyForBatchInsertBatchSize) {
+        this.bulkCopyForBatchInsertBatchSize = bulkCopyForBatchInsertBatchSize;
+    }
+
+    /**
+     * Whether to check constraints during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertCheckConstraints = false;
+
+    /**
+     * Returns the bulkCopyForBatchInsertCheckConstraints value.
+     * 
+     * @return the bulkCopyForBatchInsertCheckConstraints value.
+     */
+    public boolean getBulkCopyForBatchInsertCheckConstraints() {
+        return bulkCopyForBatchInsertCheckConstraints;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertCheckConstraints value.
+     * 
+     * @param bulkCopyForBatchInsertCheckConstraints
+     *        the bulkCopyForBatchInsertCheckConstraints value to set.
+     */
+    public void setBulkCopyForBatchInsertCheckConstraints(boolean bulkCopyForBatchInsertCheckConstraints) {
+        this.bulkCopyForBatchInsertCheckConstraints = bulkCopyForBatchInsertCheckConstraints;
+    }
+
+    /**
+     * Returns the bulkCopyForBatchInsertFireTriggers value.
+     * 
+     * @return the bulkCopyForBatchInsertFireTriggers value.
+     */
+    public boolean getBulkCopyForBatchInsertFireTriggers() {
+        return bulkCopyForBatchInsertFireTriggers;
+    }
+
+    /**
+     * Whether to fire triggers during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertFireTriggers = false;
+
+    /**
+     * Sets the bulkCopyForBatchInsertFireTriggers value.
+     * 
+     * @param bulkCopyForBatchInsertFireTriggers
+     *        the bulkCopyForBatchInsertFireTriggers value to set.
+     */
+    public void setBulkCopyForBatchInsertFireTriggers(boolean bulkCopyForBatchInsertFireTriggers) {
+        this.bulkCopyForBatchInsertFireTriggers = bulkCopyForBatchInsertFireTriggers;
+    }
+
+    /**
+     * Whether to keep identity values during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertKeepIdentity = false;
+
+    /**
+     * Returns the bulkCopyForBatchInsertKeepIdentity value.
+     * 
+     * @return the bulkCopyForBatchInsertKeepIdentity value.
+     */
+    public boolean getBulkCopyForBatchInsertKeepIdentity() {
+        return bulkCopyForBatchInsertKeepIdentity;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertKeepIdentity value.
+     * 
+     * @param bulkCopyForBatchInsertKeepIdentity
+     *        the bulkCopyForBatchInsertKeepIdentity value to set.
+     */
+    public void setBulkCopyForBatchInsertKeepIdentity(boolean bulkCopyForBatchInsertKeepIdentity) {
+        this.bulkCopyForBatchInsertKeepIdentity = bulkCopyForBatchInsertKeepIdentity;
+    }
+
+    /**
+     * Whether to keep null values during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertKeepNulls = false;
+
+    /**
+     * Returns the bulkCopyForBatchInsertKeepNulls value.
+     * 
+     * @return the bulkCopyForBatchInsertKeepNulls value.
+     */
+    public boolean getBulkCopyForBatchInsertKeepNulls() {
+        return bulkCopyForBatchInsertKeepNulls;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertKeepNulls value.
+     * 
+     * @param bulkCopyForBatchInsertKeepNulls
+     *        the bulkCopyForBatchInsertKeepNulls value to set.
+     */
+    public void setBulkCopyForBatchInsertKeepNulls(boolean bulkCopyForBatchInsertKeepNulls) {
+        this.bulkCopyForBatchInsertKeepNulls = bulkCopyForBatchInsertKeepNulls;
+    }
+
+    /**
+     * Whether to use table lock during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertTableLock = false;
+
+    /**
+     * Returns the bulkCopyForBatchInsertTableLock value.
+     * 
+     * @return the bulkCopyForBatchInsertTableLock value.
+     */
+    public boolean getBulkCopyForBatchInsertTableLock() {
+        return bulkCopyForBatchInsertTableLock;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertTableLock value.
+     * 
+     * @param bulkCopyForBatchInsertTableLock
+     *        the bulkCopyForBatchInsertTableLock value to set.
+     */
+    public void setBulkCopyForBatchInsertTableLock(boolean bulkCopyForBatchInsertTableLock) {
+        this.bulkCopyForBatchInsertTableLock = bulkCopyForBatchInsertTableLock;
+    }
+
+    /**
+     * Whether to allow encrypted value modifications during bulk copy operations.
+     */
+    private boolean bulkCopyForBatchInsertAllowEncryptedValueModifications = false;
+
+    /**
+     * Returns the bulkCopyForBatchInsertAllowEncryptedValueModifications value.
+     * 
+     * @return the bulkCopyForBatchInsertAllowEncryptedValueModifications value.
+     */
+    public boolean getBulkCopyForBatchInsertAllowEncryptedValueModifications() {
+        return bulkCopyForBatchInsertAllowEncryptedValueModifications;
+    }
+
+    /**
+     * Sets the bulkCopyForBatchInsertAllowEncryptedValueModifications value.
+     * 
+     * @param bulkCopyForBatchInsertAllowEncryptedValueModifications
+     *        the bulkCopyForBatchInsertAllowEncryptedValueModifications value to set.
+     */
+    public void setBulkCopyForBatchInsertAllowEncryptedValueModifications(
+            boolean bulkCopyForBatchInsertAllowEncryptedValueModifications) {
+        this.bulkCopyForBatchInsertAllowEncryptedValueModifications = bulkCopyForBatchInsertAllowEncryptedValueModifications;
+    }
+
+    /**
+     * A string that indicates the vector type support during connection initialization.
+     * Valid values are "off" (vector types are returned as strings) and "v1" (vectors of type FLOAT32 are returned as vectors).  
+     * Default is "v1".
+     */
+    private String vectorTypeSupport = VECTOR_SUPPORT_V1;
+
+    /**
+     * Returns the value of the vectorTypeSupport connection property.
+     *
+     * @return vectorTypeSupport
+     *         The current vector type support setting ("off" or "v1").
+     */
+    @Override
+    public String getVectorTypeSupport() {
+        return vectorTypeSupport;
+    }
+
+    /**
+     * Sets the value of the vectorTypeSupport connection property.
+     *
+     * @param vectorTypeSupport
+     * A string that indicates the vector type support during connection initialization.
+     * Valid values are "off" (vector types are returned as strings) and "v1" (vectors of type FLOAT32 are returned as vectors).  
+     * Default is "v1".
+     */
+    @Override
+    public void setVectorTypeSupport(String vectorTypeSupport) {
+        if (vectorTypeSupport == null) {
+            MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_invalidVectorTypeSupport"));
+            Object[] msgArgs = { "null" };
+            throw new IllegalArgumentException(form.format(msgArgs));
+        }
+        switch (vectorTypeSupport.trim().toLowerCase()) {
+            case VECTOR_SUPPORT_OFF:
+            case VECTOR_SUPPORT_V1:
+                this.vectorTypeSupport = vectorTypeSupport.toLowerCase();
+                break;
+            default:
+                MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_invalidVectorTypeSupport"));
+                Object[] msgArgs = { vectorTypeSupport };
+                throw new IllegalArgumentException(form.format(msgArgs));
+        }
+    }
+
     /** user set TNIR flag */
     boolean userSetTNIR = true;
 
@@ -1021,6 +1239,16 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         return serverSupportedDataClassificationVersion;
     }
 
+    /** whether server supports Vector */
+    private boolean serverSupportsVector = false;
+
+    /** server supported Vector version */
+    private byte serverSupportedVectorVersion = TDS.VECTORSUPPORT_NOT_SUPPORTED;
+
+    boolean getServerSupportsVector() {
+        return serverSupportsVector;
+    }
+
     /** Boolean that indicates whether LOB objects created by this connection should be loaded into memory */
     private boolean delayLoadingLobs = SQLServerDriverBooleanProperty.DELAY_LOADING_LOBS.getDefaultValue();
 
@@ -1087,6 +1315,29 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
      */
     public void setRetryExec(String retryExec) {
         this.retryExec = retryExec;
+    }
+
+    /** configurable connection retry rules */
+    private String retryConn = SQLServerDriverStringProperty.RETRY_CONN.getDefaultValue();
+
+    /**
+     * Returns the set of configurable connection retry rules set in retryConn
+     *
+     * @return
+     *         A string containing statement retry rules.
+     */
+    public String getRetryConn() {
+        return retryConn;
+    }
+
+    /**
+     * Sets the list of configurable connection retry rules, for the given connection, in retryConn.
+     *
+     * @param retryConn
+     *        The list of retry rules to set, as a string.
+     */
+    public void setRetryConn(String retryConn) {
+        this.retryConn = retryConn;
     }
 
     /** Session Recovery Object */
@@ -1572,7 +1823,8 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
     /** transaction descriptor */
     private byte[] transactionDescriptor = new byte[8];
 
-    static final HashMap<String, Map<Integer, SQLServerBulkCopy.BulkColumnMetaData>> BULK_COPY_OPERATION_CACHE = new HashMap<>();
+    /** bulkcopy operation cache */
+    final HashMap<String, Map<Integer, SQLServerBulkCopy.BulkColumnMetaData>> bulkCopyOperationCache = new HashMap<>();
 
     /**
      * Flag (Yukon and later) set to true whenever a transaction is rolled back..The flag's value is reset to false when
@@ -1589,6 +1841,10 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
     private void setState(State state) {
         this.state = state;
+    }
+
+    final HashMap<String, Map<Integer, SQLServerBulkCopy.BulkColumnMetaData>> getBulkCopyOperationCache() {
+        return bulkCopyOperationCache;
     }
 
     /**
@@ -1841,7 +2097,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
             return this;
     }
 
-    final void resetPooledConnection() {
+    final void resetPooledConnection() throws SQLServerException {
         tdsChannel.resetPooledConnection();
         initResettableValues();
 
@@ -1849,6 +2105,13 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         if (null != preparedStatementHandleCache) {
             preparedStatementHandleCache.clear();
         }
+
+        // clear bulk copy operation cache for this connection
+        if (null != bulkCopyOperationCache) {
+            bulkCopyOperationCache.clear();
+        }
+
+        setSessionProperties();        
     }
 
     /**
@@ -1990,6 +2253,11 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
         long elapsedSeconds = 0;
         long start = System.currentTimeMillis();
+
+        // Any existing enclave session would be invalid, make sure it is invalidated.
+        // For example, if this is a session recovery reconnect.
+        //
+        invalidateEnclaveSessionCache();
         for (int connectRetryAttempt = 0, tlsRetryAttempt = 0;;) {
             try {
                 if (0 == elapsedSeconds || elapsedSeconds < loginTimeoutSeconds) {
@@ -2039,10 +2307,23 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                         }
                         throw e;
                     } else {
-                        // only retry if transient error
+                        // Only retry if matches configured CRL rules, or transient error (if CRL is not in use)
                         SQLServerError sqlServerError = e.getSQLServerError();
-                        if (!TransientError.isTransientError(sqlServerError)) {
+                        if (null == sqlServerError) {
                             throw e;
+                        } else {
+                            ConfigurableRetryRule rule = ConfigurableRetryLogic.getInstance()
+                                    .searchRuleSet(sqlServerError.getErrorNumber(), "connection");
+
+                            if (null == rule) {
+                                if (ConfigurableRetryLogic.getInstance().getReplaceFlag()) {
+                                    throw e;
+                                } else {
+                                    if (!TransientError.isTransientError(sqlServerError)) {
+                                        throw e;
+                                    }
+                                }
+                            }
                         }
 
                         // check if there's time to retry, no point to wait if no time left
@@ -2385,7 +2666,16 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                     activeConnectionProperties.setProperty(sPropKey, sPropValue);
                 }
                 retryExec = sPropValue;
-                ConfigurableRetryLogic.getInstance().setFromConnectionString(sPropValue);
+                ConfigurableRetryLogic.getInstance().setStatementRulesFromConnectionString(sPropValue);
+
+                sPropKey = SQLServerDriverStringProperty.RETRY_CONN.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null == sPropValue) {
+                    sPropValue = SQLServerDriverStringProperty.RETRY_CONN.getDefaultValue();
+                    activeConnectionProperties.setProperty(sPropKey, sPropValue);
+                }
+                retryConn = sPropValue;
+                ConfigurableRetryLogic.getInstance().setConnectionRulesFromConnectionString(sPropValue);
 
                 sPropKey = SQLServerDriverBooleanProperty.CALC_BIG_DECIMAL_PRECISION.toString();
                 sPropValue = activeConnectionProperties.getProperty(sPropKey);
@@ -2758,13 +3048,6 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                         && !activeConnectionProperties
                                 .getProperty(SQLServerDriverStringProperty.ACCESS_TOKEN_CALLBACK_CLASS.toString())
                                 .isEmpty();
-                if ((null != accessTokenCallback || hasAccessTokenCallbackClass) && (!activeConnectionProperties
-                        .getProperty(SQLServerDriverStringProperty.USER.toString()).isEmpty()
-                        || !activeConnectionProperties.getProperty(SQLServerDriverStringProperty.PASSWORD.toString())
-                                .isEmpty())) {
-                    throw new SQLServerException(
-                            SQLServerException.getErrString("R_AccessTokenCallbackWithUserPassword"), null);
-                }
 
                 sPropKey = SQLServerDriverStringProperty.ACCESS_TOKEN_CALLBACK_CLASS.toString();
                 sPropValue = activeConnectionProperties.getProperty(sPropKey);
@@ -2804,13 +3087,19 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                             SQLServerException.getErrString("R_IntegratedAuthenticationWithUserPassword"), null);
                 }
 
-                if (authenticationString.equalsIgnoreCase(SqlAuthentication.ACTIVE_DIRECTORY_PASSWORD.toString())
-                        && ((activeConnectionProperties.getProperty(SQLServerDriverStringProperty.USER.toString())
-                                .isEmpty())
-                                || (activeConnectionProperties
-                                        .getProperty(SQLServerDriverStringProperty.PASSWORD.toString()).isEmpty()))) {
-                    throw new SQLServerException(SQLServerException.getErrString("R_NoUserPasswordForActivePassword"),
-                            null);
+                if (authenticationString.equalsIgnoreCase(SqlAuthentication.ACTIVE_DIRECTORY_PASSWORD.toString())) {
+                    if (connectionlogger.isLoggable(Level.WARNING)) {
+                        connectionlogger.warning(this.toString()
+                                + "ActiveDirectoryPassword authentication method is deprecated.");
+                    }
+
+                    if(((activeConnectionProperties.getProperty(SQLServerDriverStringProperty.USER.toString())
+                            .isEmpty())
+                            || (activeConnectionProperties
+                                    .getProperty(SQLServerDriverStringProperty.PASSWORD.toString()).isEmpty()))) {
+                        throw new SQLServerException(SQLServerException.getErrString("R_NoUserPasswordForActivePassword"),
+                                null);
+                    }
                 }
 
                 if (authenticationString
@@ -3081,10 +3370,59 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                     useBulkCopyForBatchInsert = isBooleanPropertyOn(sPropKey, sPropValue);
                 }
 
+                sPropKey = SQLServerDriverIntProperty.BULK_COPY_FOR_BATCH_INSERT_BATCH_SIZE.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertBatchSize = Integer.parseInt(sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_CHECK_CONSTRAINTS.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertCheckConstraints = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_FIRE_TRIGGERS.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertFireTriggers = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_KEEP_IDENTITY.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertKeepIdentity = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_KEEP_NULLS.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertKeepNulls = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_TABLE_LOCK.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertTableLock = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
+                sPropKey = SQLServerDriverBooleanProperty.BULK_COPY_FOR_BATCH_INSERT_ALLOW_ENCRYPTED_VALUE_MODIFICATIONS
+                        .toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    bulkCopyForBatchInsertAllowEncryptedValueModifications = isBooleanPropertyOn(sPropKey, sPropValue);
+                }
+
                 sPropKey = SQLServerDriverBooleanProperty.ENABLE_BULK_COPY_CACHE.toString();
                 sPropValue = activeConnectionProperties.getProperty(sPropKey);
                 if (null != sPropValue) {
                     setcacheBulkCopyMetadata(isBooleanPropertyOn(sPropKey, sPropValue));
+                }
+
+                sPropKey = SQLServerDriverStringProperty.VECTOR_TYPE_SUPPORT.toString();
+                sPropValue = activeConnectionProperties.getProperty(sPropKey);
+                if (null != sPropValue) {
+                    setVectorTypeSupport(sPropValue);
                 }
 
                 sPropKey = SQLServerDriverStringProperty.SSL_PROTOCOL.toString();
@@ -3270,7 +3608,8 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
             }
 
             state = State.OPENED;
-
+            setSessionProperties();
+            
             // Socket timeout is bounded by loginTimeout during the login phase.
             // Reset socket timeout back to the original value.
             tdsChannel.resetTcpSocketTimeout();
@@ -3290,6 +3629,40 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
             activeConnectionProperties.remove(SQLServerDriverStringProperty.TRUST_STORE_PASSWORD.toString());
         }
         return this;
+    }
+
+    private void setSessionProperties() throws SQLServerException {
+        // check QUOTED_IDENTIFIER property
+        String quotedIdentifierProperty = SQLServerDriverStringProperty.QUOTED_IDENTIFIER.toString();
+        String quotedIdentifierValue = activeConnectionProperties.getProperty(quotedIdentifierProperty);
+        if (null != quotedIdentifierValue) {
+            OnOffOption quotedIdentifierOption = OnOffOption.valueOfString(quotedIdentifierValue);
+            activeConnectionProperties.setProperty(quotedIdentifierProperty, quotedIdentifierValue);
+            switch (quotedIdentifierOption) {
+                case ON:
+                    connectionCommand("SET QUOTED_IDENTIFIER ON", "quotedIdentifier");
+                    break;
+                case OFF:
+                    connectionCommand("SET QUOTED_IDENTIFIER OFF", "quotedIdentifier");
+                    break;
+            }
+        }
+
+        // check CONCAT_NULL_YIELDS_NULL property
+        String concatNullYieldsNullProperty = SQLServerDriverStringProperty.CONCAT_NULL_YIELDS_NULL.toString();
+        String concatNullYieldsNullValue = activeConnectionProperties.getProperty(concatNullYieldsNullProperty);
+        if (null != concatNullYieldsNullValue) {
+            OnOffOption concatNullYieldsOption = OnOffOption.valueOfString(concatNullYieldsNullValue);
+            activeConnectionProperties.setProperty(concatNullYieldsNullProperty, concatNullYieldsNullValue);
+            switch (concatNullYieldsOption) {
+                case ON:
+                    connectionCommand("SET CONCAT_NULL_YIELDS_NULL ON", "concatNullYields");        
+                    break;
+                case OFF:
+                    connectionCommand("SET CONCAT_NULL_YIELDS_NULL OFF", "concatNullYields");
+                    break;
+            }
+        }
     }
 
     // log open connection failures
@@ -3381,7 +3754,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
         // indicates the no of times the connection was routed to a different server
         int noOfRedirections = 0;
-
+        int maxNoOfRedirections = 10;
         // Only three ways out of this loop:
         // 1) Successfully connected
         // 2) Parser threw exception while main timer was expired
@@ -3455,9 +3828,10 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                                 .fine(toString() + " Connection open - redirection count: " + noOfRedirections);
                     }
 
-                    if (noOfRedirections > 1) {
-                        String msg = SQLServerException.getErrString("R_multipleRedirections");
-                        terminate(SQLServerException.DRIVER_ERROR_UNSUPPORTED_CONFIG, msg);
+                    if (noOfRedirections > maxNoOfRedirections) {
+                        MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_multipleRedirections"));
+                        Object[] msgArgs = {maxNoOfRedirections};
+                        terminate(SQLServerException.DRIVER_ERROR_UNSUPPORTED_CONFIG, form.format(msgArgs));
                     }
 
                     // close tds channel
@@ -3899,7 +4273,11 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         final byte fedAuthOffset;
         if (fedAuthRequiredByUser) {
             messageLength = TDS.B_PRELOGIN_MESSAGE_LENGTH_WITH_FEDAUTH;
-            requestedEncryptionLevel = TDS.ENCRYPT_ON;
+            if (encryptOption.compareToIgnoreCase(EncryptOption.STRICT.toString()) == 0) {
+                requestedEncryptionLevel = TDS.ENCRYPT_NOT_SUP;
+            } else {
+                requestedEncryptionLevel = TDS.ENCRYPT_ON;
+            }
 
             // since we added one more line for prelogin option with fedauth,
             // we also needed to modify the offsets above, by adding 5 to each offset,
@@ -4522,6 +4900,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
              */
             boolean commandComplete = false;
             try {
+                newCommand.createCounter(null, activeConnectionProperties);
                 commandComplete = newCommand.execute(tdsChannel.getWriter(), tdsChannel.getReader(newCommand));
             } finally {
                 /*
@@ -5292,6 +5671,32 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         if (write) {
             tdsWriter.writeByte(TDS.TDS_FEATURE_EXT_AZURESQLDNSCACHING);
             tdsWriter.writeInt(0);
+        }
+        return len;
+    }
+
+    /**
+     * Writes the Vector Support feature request to the physical state object,
+     * unless vectorTypeSupport is "off". The request includes the feature ID,
+     * feature data length, and version number.
+     * 
+     * @param write
+     * If true, writes the feature request to the physical state object.
+     * @param tdsWriter
+     * @return
+     * The length of the feature request in bytes, or 0 if vectorTypeSupport is "off".
+     * @throws SQLServerException
+     */
+    int writeVectorSupportFeatureRequest(boolean write,
+            TDSWriter tdsWriter) throws SQLServerException {
+        if (VECTOR_SUPPORT_OFF.equalsIgnoreCase(vectorTypeSupport)) {
+            return 0;
+        }
+        int len = 6; // 1byte = featureID, 4bytes = featureData length, 1 bytes = Version
+        if (write) {
+            tdsWriter.writeByte(TDS.TDS_FEATURE_EXT_VECTORSUPPORT);
+            tdsWriter.writeInt(1);
+            tdsWriter.writeByte(TDS.MAX_VECTORSUPPORT_VERSION);
         }
         return len;
     }
@@ -6073,10 +6478,11 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         }
 
         while (true) {
+            int millisecondsRemaining = timerRemaining(timerExpire);
             if (authenticationString.equalsIgnoreCase(SqlAuthentication.ACTIVE_DIRECTORY_PASSWORD.toString())) {
                 fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthToken(fedAuthInfo, user,
                         activeConnectionProperties.getProperty(SQLServerDriverStringProperty.PASSWORD.toString()),
-                        authenticationString);
+                        authenticationString, millisecondsRemaining);
 
                 // Break out of the retry loop in successful case.
                 break;
@@ -6088,12 +6494,13 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
                 if (null != managedIdentityClientId && !managedIdentityClientId.isEmpty()) {
                     fedAuthToken = SQLServerSecurityUtility.getManagedIdentityCredAuthToken(fedAuthInfo.spn,
-                            managedIdentityClientId);
+                            managedIdentityClientId, millisecondsRemaining);
                     break;
                 }
 
                 fedAuthToken = SQLServerSecurityUtility.getManagedIdentityCredAuthToken(fedAuthInfo.spn,
-                        activeConnectionProperties.getProperty(SQLServerDriverStringProperty.MSI_CLIENT_ID.toString()));
+                        activeConnectionProperties.getProperty(SQLServerDriverStringProperty.MSI_CLIENT_ID.toString()),
+                        millisecondsRemaining);
 
                 // Break out of the retry loop in successful case.
                 break;
@@ -6104,12 +6511,12 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                 if (aadPrincipalID != null && !aadPrincipalID.isEmpty() && aadPrincipalSecret != null
                         && !aadPrincipalSecret.isEmpty()) {
                     fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthTokenPrincipal(fedAuthInfo, aadPrincipalID,
-                            aadPrincipalSecret, authenticationString);
+                            aadPrincipalSecret, authenticationString, millisecondsRemaining);
                 } else {
                     fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthTokenPrincipal(fedAuthInfo,
                             activeConnectionProperties.getProperty(SQLServerDriverStringProperty.USER.toString()),
                             activeConnectionProperties.getProperty(SQLServerDriverStringProperty.PASSWORD.toString()),
-                            authenticationString);
+                            authenticationString, millisecondsRemaining);
                 }
 
                 // Break out of the retry loop in successful case.
@@ -6122,7 +6529,8 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                         activeConnectionProperties.getProperty(SQLServerDriverStringProperty.USER.toString()),
                         servicePrincipalCertificate,
                         activeConnectionProperties.getProperty(SQLServerDriverStringProperty.PASSWORD.toString()),
-                        servicePrincipalCertificateKey, servicePrincipalCertificatePassword, authenticationString);
+                        servicePrincipalCertificateKey, servicePrincipalCertificatePassword, authenticationString,
+                        millisecondsRemaining);
 
                 // Break out of the retry loop in successful case.
                 break;
@@ -6157,7 +6565,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                             throw new SQLServerException(form.format(msgArgs), null);
                         }
 
-                        int millisecondsRemaining = timerRemaining(timerExpire);
+                        millisecondsRemaining = timerRemaining(timerExpire);
                         if (ActiveDirectoryAuthentication.GET_ACCESS_TOKEN_TRANSIENT_ERROR != errorCategory
                                 || timerHasExpired(timerExpire) || (fedauthSleepInterval >= millisecondsRemaining)) {
 
@@ -6203,7 +6611,8 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                         Object[] msgArgs = {SQLServerDriver.AUTH_DLL_NAME, authenticationString};
                         throw new SQLServerException(form.format(msgArgs), null, 0, null);
                     }
-                    fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthTokenIntegrated(fedAuthInfo, authenticationString);
+                    fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthTokenIntegrated(fedAuthInfo, authenticationString,
+                            millisecondsRemaining);
                 }
                 // Break out of the retry loop in successful case.
                 break;
@@ -6211,7 +6620,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                     .equalsIgnoreCase(SqlAuthentication.ACTIVE_DIRECTORY_INTERACTIVE.toString())) {
                 // interactive flow
                 fedAuthToken = SQLServerMSAL4JUtils.getSqlFedAuthTokenInteractive(fedAuthInfo, user,
-                        authenticationString);
+                        authenticationString, millisecondsRemaining);
 
                 // Break out of the retry loop in successful case.
                 break;
@@ -6221,12 +6630,13 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
                 if (null != managedIdentityClientId && !managedIdentityClientId.isEmpty()) {
                     fedAuthToken = SQLServerSecurityUtility.getDefaultAzureCredAuthToken(fedAuthInfo.spn,
-                            managedIdentityClientId);
+                            managedIdentityClientId, millisecondsRemaining);
                     break;
                 }
 
                 fedAuthToken = SQLServerSecurityUtility.getDefaultAzureCredAuthToken(fedAuthInfo.spn,
-                        activeConnectionProperties.getProperty(SQLServerDriverStringProperty.MSI_CLIENT_ID.toString()));
+                        activeConnectionProperties.getProperty(SQLServerDriverStringProperty.MSI_CLIENT_ID.toString()),
+                        millisecondsRemaining);
 
                 break;
             }
@@ -6425,6 +6835,24 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                 sessionRecovery.setConnectionRecoveryPossible(true);
                 break;
             }
+
+            case TDS.TDS_FEATURE_EXT_VECTORSUPPORT: {
+                if (connectionlogger.isLoggable(Level.FINE)) {
+                    connectionlogger.fine(toString() + " Received feature extension acknowledgement for vector support. Received byte: " + data[0]);
+                }
+
+                if (1 != data.length) {
+                    throw new SQLServerException(SQLServerException.getErrString("R_unknownVectorSupportValue"), null);
+                }
+
+                serverSupportedVectorVersion = data[0];
+                if (0 == serverSupportedVectorVersion || serverSupportedVectorVersion > TDS.MAX_VECTORSUPPORT_VERSION) {
+                    throw new SQLServerException(SQLServerException.getErrString("R_InvalidVectorVersionNumber"), null);
+                }
+                serverSupportsVector = true;
+                break;
+            }
+
             default: {
                 // Unknown feature ack
                 throw new SQLServerException(SQLServerException.getErrString("R_UnknownFeatureAck"), null);
@@ -6644,6 +7072,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         String appName = activeConnectionProperties
                 .getProperty(SQLServerDriverStringProperty.APPLICATION_NAME.toString());
         String interfaceLibName = "Microsoft JDBC Driver " + SQLJdbcVersion.MAJOR + "." + SQLJdbcVersion.MINOR;
+        // String interfaceLibName = SQLServerDriver.constructedAppName;
         String databaseName = activeConnectionProperties
                 .getProperty(SQLServerDriverStringProperty.DATABASE_NAME.toString());
 
@@ -6723,6 +7152,9 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         len = len + writeUTF8SupportFeatureRequest(false, tdsWriter);
 
         len = len + writeDNSCacheFeatureRequest(false, tdsWriter);
+
+        // request vector support
+        len += writeVectorSupportFeatureRequest(false, tdsWriter);
 
         len = len + 1; // add 1 to length because of FeatureEx terminator
 
@@ -6920,6 +7352,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         writeDataClassificationFeatureRequest(true, tdsWriter);
         writeUTF8SupportFeatureRequest(true, tdsWriter);
         writeDNSCacheFeatureRequest(true, tdsWriter);
+        writeVectorSupportFeatureRequest(true, tdsWriter);
 
         // Idle Connection Resiliency is requested
         if (connectRetryCount > 0) {
@@ -6931,20 +7364,15 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
         LogonProcessor logonProcessor = new LogonProcessor(authentication);
         TDSReader tdsReader;
+        sessionRecovery.setConnectionRecoveryPossible(false);
         do {
             tdsReader = logonCommand.startResponse();
-            sessionRecovery.setConnectionRecoveryPossible(false);
             TDSParser.parse(tdsReader, logonProcessor);
         } while (!logonProcessor.complete(logonCommand, tdsReader));
 
-        if (sessionRecovery.isReconnectRunning() && !sessionRecovery.isConnectionRecoveryPossible()) {
-            if (connectionlogger.isLoggable(Level.WARNING)) {
-                connectionlogger.warning(this.toString()
-                        + "SessionRecovery feature extension ack was not sent by the server during reconnection.");
-            }
-            terminate(SQLServerException.DRIVER_ERROR_INVALID_TDS,
-                    SQLServerException.getErrString("R_crClientNoRecoveryAckFromLogin"));
-        }
+        connectionReconveryCheck(sessionRecovery.isReconnectRunning(), sessionRecovery.isConnectionRecoveryPossible(),
+                routingInfo);
+
         if (connectRetryCount > 0 && !sessionRecovery.isReconnectRunning()) {
             sessionRecovery.getSessionStateTable().setOriginalCatalog(sCatalog);
             sessionRecovery.getSessionStateTable().setOriginalCollation(databaseCollation);
@@ -6952,6 +7380,17 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         }
     }
 
+    private void connectionReconveryCheck(boolean isReconnectRunning, boolean isConnectionRecoveryPossible,
+                    ServerPortPlaceHolder routingDetails) throws SQLServerException {
+        if (isReconnectRunning && !isConnectionRecoveryPossible && routingDetails == null) {
+            if (connectionlogger.isLoggable(Level.WARNING)) {
+                connectionlogger.warning(this.toString()
+                        + "SessionRecovery feature extension ack was not sent by the server during reconnection.");
+            }
+            terminate(SQLServerException.DRIVER_ERROR_INVALID_TDS,
+                    SQLServerException.getErrString("R_crClientNoRecoveryAckFromLogin"));
+        }
+    }
     /* --------------- JDBC 3.0 ------------- */
 
     /**
@@ -7159,7 +7598,9 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
     @Override
     public void releaseSavepoint(Savepoint savepoint) throws SQLException {
         loggerExternal.entering(loggingClassName, "releaseSavepoint", savepoint);
-        SQLServerException.throwNotSupportedException(this, null);
+        MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_featureNotSupported"));
+        Object[] msgArgs = {"releaseSavepoint"};
+        throw new SQLFeatureNotSupportedException(form.format(msgArgs));
     }
 
     final private Savepoint setNamedSavepoint(String sName) throws SQLServerException {
@@ -7554,7 +7995,7 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
     }
 
     /** request started flag */
-    private boolean requestStarted = false;
+    private volatile boolean requestStarted = false;
 
     /** original database autocommit mode */
     private boolean originalDatabaseAutoCommitMode;
@@ -7592,6 +8033,27 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
     /** original useBulkCopyForBatchInsert flag */
     private boolean originalUseBulkCopyForBatchInsert;
 
+    /** original bulkCopyForBatchInsertBatchSize */
+    private int originalBulkCopyForBatchInsertBatchSize;
+
+    /** original bulkCopyForBatchInsertCheckConstraints flag */
+    private boolean originalBulkCopyForBatchInsertCheckConstraints;
+
+    /** original bulkCopyForBatchInsertFireTriggers flag */
+    private boolean originalBulkCopyForBatchInsertFireTriggers;
+
+    /** original bulkCopyForBatchInsertKeepIdentity flag */
+    private boolean originalBulkCopyForBatchInsertKeepIdentity;
+
+    /** original bulkCopyForBatchInsertKeepNulls flag */
+    private boolean originalBulkCopyForBatchInsertKeepNulls;
+
+    /** original bulkCopyForBatchInsertTableLock flag */
+    private boolean originalBulkCopyForBatchInsertTableLock;
+
+    /** original bulkCopyForBatchInsertAllowEncryptedValueModifications flag */
+    private boolean originalBulkCopyForBatchInsertAllowEncryptedValueModifications;
+
     /** original SqlWarnings */
     private volatile SQLWarning originalSqlWarnings;
 
@@ -7606,6 +8068,9 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
 
     /** original ignoreOffsetOnDateTimeOffsetConversion */
     private boolean originalIgnoreOffsetOnDateTimeOffsetConversion;
+
+    /** original vectorTypeSupport value */
+    private String originalVectorTypeSupport;
 
     /** Always Encrypted version */
     private int aeVersion = TDS.COLUMNENCRYPTION_NOT_SUPPORTED;
@@ -7627,6 +8092,14 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                 originalEnablePrepareOnFirstPreparedStatementCall = getEnablePrepareOnFirstPreparedStatementCall();
                 originalSCatalog = sCatalog;
                 originalUseBulkCopyForBatchInsert = getUseBulkCopyForBatchInsert();
+                originalBulkCopyForBatchInsertBatchSize = getBulkCopyForBatchInsertBatchSize();
+                originalBulkCopyForBatchInsertCheckConstraints = getBulkCopyForBatchInsertCheckConstraints();
+                originalBulkCopyForBatchInsertFireTriggers = getBulkCopyForBatchInsertFireTriggers();
+                originalBulkCopyForBatchInsertKeepIdentity = getBulkCopyForBatchInsertKeepIdentity();
+                originalBulkCopyForBatchInsertKeepNulls = getBulkCopyForBatchInsertKeepNulls();
+                originalBulkCopyForBatchInsertTableLock = getBulkCopyForBatchInsertTableLock();
+                originalBulkCopyForBatchInsertAllowEncryptedValueModifications = getBulkCopyForBatchInsertAllowEncryptedValueModifications();
+                originalVectorTypeSupport = getVectorTypeSupport();
                 originalSqlWarnings = sqlWarnings;
                 openStatements = new LinkedList<>();
                 originalUseFmtOnly = useFmtOnly;
@@ -7684,9 +8157,44 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                 if (!sCatalog.equals(originalSCatalog)) {
                     setCatalog(originalSCatalog);
                 }
+
                 if (getUseBulkCopyForBatchInsert() != originalUseBulkCopyForBatchInsert) {
                     setUseBulkCopyForBatchInsert(originalUseBulkCopyForBatchInsert);
                 }
+
+                if (getBulkCopyForBatchInsertBatchSize() != originalBulkCopyForBatchInsertBatchSize) {
+                    setBulkCopyForBatchInsertBatchSize(originalBulkCopyForBatchInsertBatchSize);
+                }
+
+                if (getBulkCopyForBatchInsertCheckConstraints() != originalBulkCopyForBatchInsertCheckConstraints) {
+                    setBulkCopyForBatchInsertCheckConstraints(originalBulkCopyForBatchInsertCheckConstraints);
+                }
+
+                if (getBulkCopyForBatchInsertFireTriggers() != originalBulkCopyForBatchInsertFireTriggers) {
+                    setBulkCopyForBatchInsertFireTriggers(originalBulkCopyForBatchInsertFireTriggers);
+                }
+
+                if (getBulkCopyForBatchInsertKeepIdentity() != originalBulkCopyForBatchInsertKeepIdentity) {
+                    setBulkCopyForBatchInsertKeepIdentity(originalBulkCopyForBatchInsertKeepIdentity);
+                }
+
+                if (getBulkCopyForBatchInsertKeepNulls() != originalBulkCopyForBatchInsertKeepNulls) {
+                    setBulkCopyForBatchInsertKeepNulls(originalBulkCopyForBatchInsertKeepNulls);
+                }
+
+                if (getBulkCopyForBatchInsertTableLock() != originalBulkCopyForBatchInsertTableLock) {
+                    setBulkCopyForBatchInsertTableLock(originalBulkCopyForBatchInsertTableLock);
+                }
+
+                if (getBulkCopyForBatchInsertAllowEncryptedValueModifications() != originalBulkCopyForBatchInsertAllowEncryptedValueModifications) {
+                    setBulkCopyForBatchInsertAllowEncryptedValueModifications(
+                            originalBulkCopyForBatchInsertAllowEncryptedValueModifications);
+                }
+
+                if (!getVectorTypeSupport().equalsIgnoreCase(originalVectorTypeSupport)) {
+                    setVectorTypeSupport(originalVectorTypeSupport);
+                }
+
                 if (delayLoadingLobs != originalDelayLoadingLobs) {
                     setDelayLoadingLobs(originalDelayLoadingLobs);
                 }
@@ -7696,9 +8204,13 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
                 sqlWarnings = originalSqlWarnings;
                 if (null != openStatements) {
                     while (!openStatements.isEmpty()) {
-                        try (Statement st = openStatements.get(0)) {}
+                        Statement st = openStatements.get(0);
+                        try {
+                            st.close();
+                        } finally {
+                            removeOpenStatement((SQLServerStatement) st);
+                        }
                     }
-                    openStatements.clear();
                 }
                 requestStarted = false;
             }
@@ -8587,6 +9099,15 @@ public class SQLServerConnection implements ISQLServerConnection, java.io.Serial
         }
         return enclaveProvider.createEnclaveSession(this, statement, userSql, preparedTypeDefinitions, params,
                 parameterNames);
+    }
+
+    void invalidateEnclaveSessionCache() {
+        if (enclaveProvider != null) {
+            if (connectionlogger.isLoggable(Level.FINE)) {
+                connectionlogger.fine("Invalidating existing enclave session for enclave provider : " + enclaveProvider);
+            }
+            enclaveProvider.invalidateEnclaveSession();
+        }
     }
 
     boolean enclaveEstablished() {

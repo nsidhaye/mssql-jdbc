@@ -3,18 +3,168 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [13.1.0] Preview Release
+
+### Added
+
+- **Vector datatype support** [#2634](https://github.com/microsoft/mssql-jdbc/pull/2634)  
+  **What was added**: Native support for SQL Server’s new `VECTOR` data type with APIs for inserts, selects, stored procedures, and bulk copy.  
+  **Who benefits**: Developers building AI/ML workloads or semantic search applications using vector data in SQL Server.  
+  **Impact**: Enables native vector storage and access via JDBC, eliminating the performance overhead of managing vector data as strings.  
+
+
+- **New connection options, `quotedIdentifier` and `concatNullYieldsNull`** [#2618](https://github.com/microsoft/mssql-jdbc/pull/2618)  
+  **What was added**: ) New connection options, `quotedIdentifier` and `concatNullYieldsNull`, to control QUOTED_IDENTIFIER and CONCAT_NULL_YIELDS_NULL session settings for both new and pooled connections.  
+  **Who benefits**: Developers needing Sybase-default behavior for their applications.  
+  **Impact**: Reduces Sybase migration effort by allowing control of these session values.  
+
+
+- **Support for temporal and money datatypes when using bulk copy for batch insert operations** [#2670](https://github.com/microsoft/mssql-jdbc/pull/2670)  
+  **What was added**: Support for batch inserts of `DATETIME`, `DATE`, `MONEY`, etc., when using the `useBulkCopyForBatchInsert` option.  
+  **Who benefits**: High-volume data insert users.  
+  **Impact**: Improves performance for previously unsupported types (except in Azure Synapse Analytics (formerly Azure SQL DW).  
+
+
+- **Mockito integration into JDBC driver tests** [#2644](https://github.com/microsoft/mssql-jdbc/pull/2644)  
+  **What was added**: Mockito added as a test dependency.  
+  **Who benefits**: Developers and contributors writing unit tests.  
+  **Impact**: Enables better control and test coverage.  
+
+
+### Changed
+
+- **`releaseSavepoint` exception type standardized to `SQLFeatureNotSupported`** [#2583](https://github.com/microsoft/mssql-jdbc/pull/2583)  
+  **What changed**: SQLServerException replaced with SQLFeatureNotSupportedException to comply with JDBC specification.  
+  **Who benefits**: Developers expecting JDBC standard exceptions.  
+  **Impact**: Enables better exception handling in client code.  
+
+
+- **`ActiveDirectoryPassword` authentication deprecated** [#2624](https://github.com/microsoft/mssql-jdbc/pull/2624)  
+  **What changed**: Added deprecation warning for Microsoft Entra ID password authentication method.  
+  **Who benefits**: Microsoft Entra ID authentication users.  
+  **Impact**: Encourages migration to more secure methods.  
+
+
+- **Include Columnstore indexes in `getIndexInfo()`** [#2598](https://github.com/microsoft/mssql-jdbc/pull/2598)  
+  **What changed**: Replaced `sp_statistics` with a custom query to support all index types.  
+  **Who benefits**: Developers using metadata APIs.  
+  **Impact**: More accurate index metadata.  
+
+
+- **Corrected schema filtering in `getSchemas()`** [#2643](https://github.com/microsoft/mssql-jdbc/pull/2643)  
+  **What changed**: Ensured schemas are properly filtered when a catalog name is provided.  
+  **Who benefits**: Users of metadata functions.  
+  **Impact**: Complies with JDBC specification and avoids confusion.  
+
+
+- **Increased redirection limit** [#2659](https://github.com/microsoft/mssql-jdbc/pull/2659)  
+  **What changed**: Raised maximum redirection hops from 1 to 10.  
+  **Who benefits**: Azure SQL Fabric users.  
+  **Impact**: Enables successful multi-hop connection scenarios.  
+
+
+### Fixed issues
+
+- **Session recovery with Entra ID authentication and redirect mode** [#2668](https://github.com/microsoft/mssql-jdbc/pull/2668)  
+  **What was fixed**: Redirect information is now followed during session recovery when using Entra ID authentication.  
+  **Who benefits**: Azure SQL DB users using Entra ID and connection resiliency.  
+  **Impact**: Prevents connection recovery failures.  
+
+
+- **Javadoc build warnings** [#2640](https://github.com/microsoft/mssql-jdbc/pull/2640)  
+  **What was fixed**: Cleaned up invalid Javadoc syntax.  
+  **Who benefits**: Developers building the driver.  
+  **Impact**: Cleaner builds, better docs.  
+
+
+- **OffsetDateTime formatting in SQLServerDataTable** [#2652](https://github.com/microsoft/mssql-jdbc/pull/2652)  
+  **What was fixed**: The `OffsetDateTime` `toString()` method was omitting seconds when seconds are zero, which resulted in the server rejecting those records. Used `DateTimeFormatter` to avoid this invalid format.  
+  **Who benefits**: Users inserting `OffsetDateTime` values.  
+  **Impact**: Prevents conversion errors.  
+
+
+- **String comparison in SQLServerDataTable.equals()** [#2653](https://github.com/microsoft/mssql-jdbc/pull/2653)  
+  **What was fixed**: Replaced `==` with `.equals()` for strings.  
+  **Who benefits**: Anyone comparing data tables.  
+  **Impact**: Accurate comparison behavior.  
+
+
+- **PreparedStatement metadata caching for encrypted columns** [#2663](https://github.com/microsoft/mssql-jdbc/pull/2663)  
+  **What was fixed**: Fixed loss of type metadata across `PreparedStatement` reuse.  
+  **Who benefits**: Users of Always Encrypted with secure enclaves.  
+  **Impact**: Prevents insert failures in batch encryption.  
+
+
+- **Make IBM security module optional** [#2636](https://github.com/microsoft/mssql-jdbc/pull/2636)  
+  **What was fixed**: IBM security dependency is now optional.  
+  **Who benefits**: Applications not using IBM modules.  
+  **Impact**: Avoids classloading issues.  
+
+
+- **Invalidate enclave session on reconnect** [#2638](https://github.com/microsoft/mssql-jdbc/pull/2638)  
+  **What was fixed**: Enclave session cache no longer reused across reconnects.  
+  **Who benefits**: Users of Always Encrypted with secure enclaves in failover configurations.  
+  **Impact**: Prevents internal enclave errors due to invalid enclave session references after failover.  
+
+
+- **File path error handling in `ConfigurableRetryLogic`** [#2650](https://github.com/microsoft/mssql-jdbc/pull/2650)  
+  **What was fixed**: Robust error handling for missing/unreadable retry config files.  
+  **Who benefits**: All users.  
+  **Impact**: Prevents driver errors due to application file path issues.  
+
+
+- **Suppressed CodeQL warnings for crypto usages** [#2677](https://github.com/microsoft/mssql-jdbc/pull/2677)  
+  **What was fixed**: Suppressed CodeQL security warnings for cryptographic use cases.  
+  **Who benefits**: Reviewers using CodeQL.  
+  **Impact**: Maintains compatibility and audit clarity.  
+
+
+- **Batch insert fix for case-sensitive column name mismatch** [#2695](https://github.com/microsoft/mssql-jdbc/pull/2695)  
+  **What was fixed**: `executeBatch()` now respects case sensitivity of collations when matching column names.  
+  **Who benefits**: Applications using case-sensitive/case-insensitive schemas.  
+  **Impact**: Avoids metadata retrieval failures during batch inserts.  
+
+
+## [12.10.0] Stable Release
+### Added
+- Added provision to set SQLServerBulkCopy options in PreparedStatement [#2555](https://github.com/microsoft/mssql-jdbc/pull/2555)
+### Changed
+- Changed the scope of BULK_COPY_OPERATION_CACHE to connection [#2594](https://github.com/microsoft/mssql-jdbc/pull/2594)
+- Added "requireSecret" exclude tag for tests which require adding a secret to app registration [#2596](https://github.com/microsoft/mssql-jdbc/pull/2596)
+- Added com.ibm.security.auth.module and com.sun.security.auth.module as option import [#2609](https://github.com/microsoft/mssql-jdbc/pull/2609)
+- Updated driver dependency versions [#2614](https://github.com/microsoft/mssql-jdbc/pull/2614)
+### Fixed issues
+- Introduced timeouts for MSAL calls [#2562](https://github.com/microsoft/mssql-jdbc/pull/2562)
+- Fixed getGeneratedKeys functionality for execute API [#2554](https://github.com/microsoft/mssql-jdbc/pull/2554)
+- Fixed ISQLServerConnection java doc reference [#2560](https://github.com/microsoft/mssql-jdbc/pull/2560)
+- Fixed OffsetDateTime conversion for pre-Gregorian dates [#2568](https://github.com/microsoft/mssql-jdbc/pull/2568)
+- Fix for driver cutting out the question mark from columns labels (aliases) [#2569](https://github.com/microsoft/mssql-jdbc/pull/2569)
+- Fixed issue with SQLServerBulkCopy from CSV with setEscapeColumnDelimerts set to true [#2575](https://github.com/microsoft/mssql-jdbc/pull/2575)
+- Fixed issue for finding `mssql-jdbc.properties` location in test environments [#2579](https://github.com/microsoft/mssql-jdbc/pull/2579)
+- Fixed issue for IBM Semeru Runtime Certified Edition for z/OS and Kerberos [#2581](https://github.com/microsoft/mssql-jdbc/pull/2581)
+- Set appropriate value to requestedEncryptionLevel for encrypt=STRICT [#2597](https://github.com/microsoft/mssql-jdbc/pull/2597)
+- Add test for ManagedIdentityWithEncryptStrict [#2599](https://github.com/microsoft/mssql-jdbc/pull/2599)
+- Check for null when getting DTV values (JDBC spec compliance - getBinaryStream /getAsciiStream will return null when the value is null) [#2600](https://github.com/microsoft/mssql-jdbc/pull/2600)
+- Removed scheme from URI before fetching path for CRL path check [#2622](https://github.com/microsoft/mssql-jdbc/pull/2622)
+
 ## [12.9.0] Preview Release
 ### Added
-- Added statement portion of configurable retry logic feature [#2396](https://github.com/microsoft/mssql-jdbc/pull/2396)
+- Added configurable retry logic feature, supporting both statement, and connection, retry [#2396](https://github.com/microsoft/mssql-jdbc/pull/2396)[#2519](https://github.com/microsoft/mssql-jdbc/pull/2519)
 - Added JDK 23 support [#2515](https://github.com/microsoft/mssql-jdbc/pull/2515)
 
 ### Changed
 - Reverted "Execute Stored Procedures Directly" feature, as well as subsequent changes related to the feature [#2488](https://github.com/microsoft/mssql-jdbc/pull/2488)
-- Changed MSAL logging from FINER to FINEST [#2489](https://github.com/microsoft/mssql-jdbc/pull/2489)
+- Changed MSAL logging from FINEST to FINER [#2489](https://github.com/microsoft/mssql-jdbc/pull/2489)
+- Updated project pom file to pull dependencies from public Azure Artifacts Feed [#2504](https://github.com/microsoft/mssql-jdbc/pull/2504)
+- Changed how Kerberos authentication acquires subject to provide compatibility for Kerberos with Java 23 and above [#2539](https://github.com/microsoft/mssql-jdbc/pull/2539)
+- Removed user and password check for AccessTokenCallback [#2549](https://github.com/microsoft/mssql-jdbc/pull/2549)
 
 ### Fixed issues
 - Changed driver behavior to allow prepared statement objects to be reused, preventing a "multiple queries are not allowed" error [#2482](https://github.com/microsoft/mssql-jdbc/pull/2482)
 - Adjusted DESTINATION_COL_METADATA_LOCK, in SQLServerBulkCopy, so that is properly released in all cases [#2484](https://github.com/microsoft/mssql-jdbc/pull/2484)
+- Fixed connection retry behavior when `connectRetryCount` is set to a value greater than 1 [#2513](https://github.com/microsoft/mssql-jdbc/pull/2513)
+- Resolved JavaDoc warnings that would appear during project build [#2521](https://github.com/microsoft/mssql-jdbc/pull/2521)
+- Fixed infinite loop when removing open statement [#2547](https://github.com/microsoft/mssql-jdbc/pull/2547)
 
 ## [12.8.0] Stable Release
 ### Fixed issues

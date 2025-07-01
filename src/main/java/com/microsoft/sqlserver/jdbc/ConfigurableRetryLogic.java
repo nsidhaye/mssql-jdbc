@@ -12,6 +12,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -36,9 +39,13 @@ public class ConfigurableRetryLogic {
             .getLogger("com.microsoft.sqlserver.jdbc.ConfigurableRetryLogic");
     private static final String SEMI_COLON = ";";
     private static final String COMMA = ",";
-    private static final String FORWARD_SLASH = "/";
     private static final String EQUALS_SIGN = "=";
+    private static final String FORWARD_SLASH = "/";
     private static final String RETRY_EXEC = "retryExec";
+    private static final String RETRY_CONN = "retryConn";
+    private static final String STATEMENT = "statement";
+    private static final String CLASS_FILES_SUFFIX = "target/classes/";
+    private static boolean replaceFlag = false; // Are we replacing the list of transient errors?
     /**
      * The time the properties file was last modified.
      */
@@ -52,13 +59,22 @@ public class ConfigurableRetryLogic {
      */
     private static final AtomicReference<String> lastQuery = new AtomicReference<>("");
     /**
-     * The previously read rules from the connection string.
+     * The previously read statement rules from the connection string.
      */
-    private static final AtomicReference<String> prevRulesFromConnectionString = new AtomicReference<>("");
+    private static final AtomicReference<String> prevStmtRulesFromConnString = new AtomicReference<>("");
+    /**
+     * The previously read connection rules from the connection string.
+     */
+    private static final AtomicReference<String> prevConnRulesFromConnString = new AtomicReference<>("");
     /**
      * The list of statement retry rules.
      */
     private static final AtomicReference<HashMap<Integer, ConfigurableRetryRule>> stmtRules = new AtomicReference<>(
+            new HashMap<>());
+    /**
+     * The list of connection retry rules.
+     */
+    private static final AtomicReference<HashMap<Integer, ConfigurableRetryRule>> connRules = new AtomicReference<>(
             new HashMap<>());
     private static ConfigurableRetryLogic singleInstance;
 
@@ -70,7 +86,8 @@ public class ConfigurableRetryLogic {
      */
     private ConfigurableRetryLogic() throws SQLServerException {
         timeLastRead.compareAndSet(0, new Date().getTime());
-        setUpRules(null);
+        setUpStatementRules(null);
+        setUpConnectionRules(null);
     }
 
     /**
@@ -102,7 +119,8 @@ public class ConfigurableRetryLogic {
 
     /**
      * If it has been INTERVAL_BETWEEN_READS_IN_MS (30 secs) since last read, see if we last did a file read, if so
-     * only reread if the file has been modified. If no file read, set up rules using the prev. connection string rules.
+     * only reread if the file has been modified. If no file read, set up rules using the previous connection
+     * string (statement and connection) rules
      *
      * @throws SQLServerException
      *         when an exception occurs
@@ -116,25 +134,40 @@ public class ConfigurableRetryLogic {
                 // If timeLastModified is set, we previously read from file, so we setUpRules also reading from file
                 File f = new File(getCurrentClassPath());
                 if (f.lastModified() != timeLastModified.get()) {
-                    setUpRules(null);
+                    setUpStatementRules(null);
+                    setUpConnectionRules(null);
                 }
             } else {
-                setUpRules(prevRulesFromConnectionString.get());
+                setUpStatementRules(prevStmtRulesFromConnString.get());
+                setUpConnectionRules(prevConnRulesFromConnString.get());
             }
         }
     }
 
     /**
-     * Sets rules given from connection string.
+     * Sets statement rules given from connection string.
      *
      * @param newRules
      *        the new rules to use
      * @throws SQLServerException
      *         when an exception occurs
      */
-    void setFromConnectionString(String newRules) throws SQLServerException {
-        prevRulesFromConnectionString.set(newRules);
-        setUpRules(prevRulesFromConnectionString.get());
+    void setStatementRulesFromConnectionString(String newRules) throws SQLServerException {
+        prevStmtRulesFromConnString.set(newRules);
+        setUpStatementRules(prevStmtRulesFromConnString.get());
+    }
+
+    /**
+     * Sets connection rules given from connection string.
+     *
+     * @param newRules
+     *        the new rules to use
+     * @throws SQLServerException
+     *         when an exception occurs
+     */
+    void setConnectionRulesFromConnectionString(String newRules) throws SQLServerException {
+        prevConnRulesFromConnString.set(newRules);
+        setUpConnectionRules(prevConnRulesFromConnString.get());
     }
 
     /**
@@ -164,19 +197,34 @@ public class ConfigurableRetryLogic {
      * @throws SQLServerException
      *         if an exception occurs
      */
-    private static void setUpRules(String cxnStrRules) throws SQLServerException {
+    private static void setUpStatementRules(String cxnStrRules) throws SQLServerException {
         LinkedList<String> temp;
 
         stmtRules.set(new HashMap<>());
         lastQuery.set("");
 
         if (cxnStrRules == null || cxnStrRules.isEmpty()) {
-            temp = readFromFile();
+            temp = readFromFile(RETRY_EXEC);
         } else {
             temp = new LinkedList<>();
             Collections.addAll(temp, cxnStrRules.split(SEMI_COLON));
         }
-        createRules(temp);
+        createStatementRules(temp);
+    }
+
+    private static void setUpConnectionRules(String cxnStrRules) throws SQLServerException {
+        LinkedList<String> temp;
+
+        connRules.set(new HashMap<>());
+        lastQuery.set("");
+
+        if (cxnStrRules == null || cxnStrRules.isEmpty()) {
+            temp = readFromFile(RETRY_CONN);
+        } else {
+            temp = new LinkedList<>();
+            Collections.addAll(temp, cxnStrRules.split(SEMI_COLON));
+        }
+        createConnectionRules(temp);
     }
 
     /**
@@ -187,7 +235,7 @@ public class ConfigurableRetryLogic {
      * @throws SQLServerException
      *         if unable to create rules from the inputted list
      */
-    private static void createRules(LinkedList<String> listOfRules) throws SQLServerException {
+    private static void createStatementRules(LinkedList<String> listOfRules) throws SQLServerException {
         stmtRules.set(new HashMap<>());
 
         for (String potentialRule : listOfRules) {
@@ -206,6 +254,29 @@ public class ConfigurableRetryLogic {
         }
     }
 
+    private static void createConnectionRules(LinkedList<String> listOfRules) throws SQLServerException {
+        connRules.set(new HashMap<>());
+        replaceFlag = false;
+
+        for (String potentialRule : listOfRules) {
+            ConfigurableRetryRule rule = new ConfigurableRetryRule(potentialRule);
+            if (rule.replaceExisting) {
+                replaceFlag = true;
+            }
+
+            if (rule.getError().contains(COMMA)) {
+                String[] arr = rule.getError().split(COMMA);
+
+                for (String retryError : arr) {
+                    ConfigurableRetryRule splitRule = new ConfigurableRetryRule(retryError, rule);
+                    connRules.get().put(Integer.parseInt(splitRule.getError()), splitRule);
+                }
+            } else {
+                connRules.get().put(Integer.parseInt(rule.getError()), rule);
+            }
+        }
+    }
+
     /**
      * Gets the current class path (for use in file reading).
      *
@@ -216,16 +287,39 @@ public class ConfigurableRetryLogic {
     private static String getCurrentClassPath() throws SQLServerException {
         String location = "";
         String className = "";
+        String uriToString = "";
 
         try {
             className = new Object() {}.getClass().getEnclosingClass().getName();
             location = Class.forName(className).getProtectionDomain().getCodeSource().getLocation().getPath();
-            location = location.substring(0, location.length() - 16);
-            URI uri = new URI(location + FORWARD_SLASH);
-            return uri.getPath() + DEFAULT_PROPS_FILE; // For now, we only allow "mssql-jdbc.properties" as file name.
+            URI uri = ConfigurableRetryLogic.class.getProtectionDomain().getCodeSource().getLocation()
+                    .toURI();
+
+            uriToString = uri.toString();
+            
+            int initialIndexOfForwardSlash = uriToString.indexOf(FORWARD_SLASH);
+            
+            if (!uri.getScheme().isEmpty() && initialIndexOfForwardSlash > 0) {
+                // If the URI has a scheme, i.e. jar:file:, jar:, or file: then we create a substring from the
+                // forward slash onwards.
+                uriToString = uriToString.substring(initialIndexOfForwardSlash + 1);
+            }
+
+            if (Files.isDirectory(Paths.get(uriToString))) {
+                // We check if the Path we get from the CodeSource location is a directory. If so, we are running
+                // from class files and should remove a suffix (i.e. the props file is in a different location from the
+                // location returned)
+                location = location.substring(0, location.length() - CLASS_FILES_SUFFIX.length());
+            }
+
+            return new URI(location).getPath() + DEFAULT_PROPS_FILE; // TODO: Allow custom paths
+        } catch (InvalidPathException e) {
+            MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_PathInvalid"));
+            Object[] msgArgs = {uriToString};
+            throw new SQLServerException(form.format(msgArgs), null, 0, e);
         } catch (URISyntaxException e) {
             MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_URLInvalid"));
-            Object[] msgArgs = {location + FORWARD_SLASH};
+            Object[] msgArgs = {location};
             throw new SQLServerException(form.format(msgArgs), null, 0, e);
         } catch (ClassNotFoundException e) {
             MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_UnableToFindClass"));
@@ -241,16 +335,16 @@ public class ConfigurableRetryLogic {
      * @throws SQLServerException
      *         if unable to read from the file
      */
-    private static LinkedList<String> readFromFile() throws SQLServerException {
-        String filePath = getCurrentClassPath();
+    private static LinkedList<String> readFromFile(String connectionStringProperty) throws SQLServerException {
+        String filePath = "";
         LinkedList<String> list = new LinkedList<>();
-
         try {
+            filePath = getCurrentClassPath();
             File f = new File(filePath);
             try (BufferedReader buffer = new BufferedReader(new FileReader(f))) {
                 String readLine;
                 while ((readLine = buffer.readLine()) != null) {
-                    if (readLine.startsWith(RETRY_EXEC)) {
+                    if (readLine.startsWith(connectionStringProperty)) { // Either "retryExec" or "retryConn"
                         String value = readLine.split(EQUALS_SIGN)[1];
                         Collections.addAll(list, value.split(SEMI_COLON));
                     }
@@ -260,13 +354,22 @@ public class ConfigurableRetryLogic {
         } catch (FileNotFoundException e) {
             // If the file is not found either A) We're not using CRL OR B) the path is wrong. Do not error out, instead
             // log a message.
-            if (CONFIGURABLE_RETRY_LOGGER.isLoggable(java.util.logging.Level.FINER)) {
-                CONFIGURABLE_RETRY_LOGGER.finest("File not found at path - \"" + filePath + "\"");
+            if (CONFIGURABLE_RETRY_LOGGER.isLoggable(java.util.logging.Level.FINE)) {
+                CONFIGURABLE_RETRY_LOGGER.fine("File not found at path - \"" + filePath + "\"");
+            }
+        } catch (InvalidPathException e) {
+            if (CONFIGURABLE_RETRY_LOGGER.isLoggable(java.util.logging.Level.FINE)) {
+                CONFIGURABLE_RETRY_LOGGER.fine("Invalid path specified - \"" + filePath + "\"");
             }
         } catch (IOException e) {
             MessageFormat form = new MessageFormat(SQLServerException.getErrString("R_errorReadingStream"));
             Object[] msgArgs = {e.getMessage() + ", from path - \"" + filePath + "\""};
             throw new SQLServerException(form.format(msgArgs), null, 0, e);
+        } catch (Exception e) {
+            // General exception handling
+            if (CONFIGURABLE_RETRY_LOGGER.isLoggable(java.util.logging.Level.FINE)) {
+                CONFIGURABLE_RETRY_LOGGER.fine("An unexpected error occurred while reading from file: " + e.getMessage());
+            }
         }
         return list;
     }
@@ -280,13 +383,25 @@ public class ConfigurableRetryLogic {
      * @throws SQLServerException
      *         when an exception occurs
      */
-    ConfigurableRetryRule searchRuleSet(int ruleToSearchFor) throws SQLServerException {
+    ConfigurableRetryRule searchRuleSet(int ruleToSearchFor, String ruleSet) throws SQLServerException {
         refreshRuleSet();
-        for (Map.Entry<Integer, ConfigurableRetryRule> entry : stmtRules.get().entrySet()) {
-            if (entry.getKey() == ruleToSearchFor) {
-                return entry.getValue();
+        if (ruleSet.equals(STATEMENT)) {
+            for (Map.Entry<Integer, ConfigurableRetryRule> entry : stmtRules.get().entrySet()) {
+                if (entry.getKey() == ruleToSearchFor) {
+                    return entry.getValue();
+                }
+            }
+        } else {
+            for (Map.Entry<Integer, ConfigurableRetryRule> entry : connRules.get().entrySet()) {
+                if (entry.getKey() == ruleToSearchFor) {
+                    return entry.getValue();
+                }
             }
         }
         return null;
+    }
+
+    boolean getReplaceFlag() {
+        return replaceFlag;
     }
 }
